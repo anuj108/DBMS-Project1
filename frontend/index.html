@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Metadata about the page -->
+    <meta charset="UTF-8"> <!-- Defines the character set for the page -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ensures the page is mobile-friendly -->
+    <title>Product Management System</title> <!-- Title of the page -->
+    <link rel="stylesheet" href="styles.css"> <!-- Link to an external CSS file for styling -->
+</head>
+<body>
+    <!-- Header section with the title of the application -->
+    <header>
+        <h1>Product Management System</h1>
+    </header>
+
+    <main>
+        <!-- Section to add a new product -->
+        <section class="form-section">
+            <h2>Add New Product</h2>
+            <form id="addProductForm"> <!-- Form to collect product details -->
+                <div class="form-group">
+                    <label for="name">Product Name</label>
+                    <input type="text" id="name" placeholder="Enter product name" required> <!-- Input for product name -->
+                </div>
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input type="number" id="price" placeholder="Enter product price" required> <!-- Input for product price -->
+                </div>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <input type="text" id="category" placeholder="Enter product category" required> <!-- Input for product category -->
+                </div>
+                <button type="submit">Add Product</button> <!-- Button to submit the form -->
+            </form>
+        </section>
+
+        <!-- Section for search, filters, and sorting -->
+        <section class="filter-section">
+            <h2>Search and Filters</h2>
+            <!-- Input to search products by name -->
+            <div class="form-group">
+                <label for="search">Search by Name</label>
+                <input type="text" id="search" placeholder="Search products...">
+            </div>
+            <!-- Input for minimum price filter -->
+            <div class="form-group">
+                <label for="minPrice">Min Price</label>
+                <input type="number" id="minPrice" placeholder="Min price">
+            </div>
+            <!-- Input for maximum price filter -->
+            <div class="form-group">
+                <label for="maxPrice">Max Price</label>
+                <input type="number" id="maxPrice" placeholder="Max price">
+            </div>
+            <!-- Dropdown to select sorting option -->
+            <div class="form-group">
+                <label for="sort">Sort By</label>
+                <select id="sort">
+                    <option value="name">Name</option> <!-- Sort by name -->
+                    <option value="price">Price</option> <!-- Sort by price -->
+                    <option value="category">Category</option> <!-- Sort by category -->
+                </select>
+            </div>
+            <button onclick="applyFilters()">Apply Filters</button> <!-- Button to apply the filters -->
+        </section>
+
+        <!-- Section to display the product list -->
+        <section class="product-section">
+            <h2>Product List</h2>
+            <!-- Table to show product details -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Category</th>
+                    </tr>
+                </thead>
+                <tbody id="productTable"></tbody> <!-- Empty table body to be filled dynamically -->
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <!-- Footer with copyright notice -->
+        <p>© 2024 Product Management System. All Rights Reserved.</p>
+    </footer>
+
+    <!-- JavaScript code for functionality -->
+    <script>
+        // Function to fetch and display products from the server
+        const fetchProducts = async (filters = {}) => {
+            // Convert filters to a query string for the API call
+            const query = new URLSearchParams(filters).toString();
+            // Fetch products from the API
+            const res = await fetch(`http://localhost:3000/products?${query}`);
+            const products = await res.json();
+            const table = document.getElementById('productTable'); // Get the table body element
+            table.innerHTML = ''; // Clear the table before adding new rows
+            // Add each product as a row in the table
+            products.forEach(product => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${product.id}</td>
+                        <td>${product.name}</td>
+                        <td>${product.price}</td>
+                        <td>${product.category}</td>
+                    </tr>
+                `;
+            });
+        };
+
+        // Function to apply filters and fetch products based on filters
+        const applyFilters = () => {
+            const search = document.getElementById('search').value; // Get search term
+            const minPrice = document.getElementById('minPrice').value; // Get min price
+            const maxPrice = document.getElementById('maxPrice').value; // Get max price
+            const sort = document.getElementById('sort').value; // Get sorting option
+
+            // Fetch products with the specified filters
+            fetchProducts({ search, minPrice, maxPrice, sort });
+        };
+
+        // Event listener for the "Add Product" form submission
+        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent the form from refreshing the page
+            const name = document.getElementById('name').value; // Get product name
+            const price = document.getElementById('price').value; // Get product price
+            const category = document.getElementById('category').value; // Get product category
+
+            // Send the new product data to the server
+            await fetch('http://localhost:3000/products', {
+                method: 'POST', // Use POST method to add a product
+                headers: { 'Content-Type': 'application/json' }, // Send data as JSON
+                body: JSON.stringify({ name, price, category }), // Product details
+            });
+            fetchProducts(); // Refresh the product list
+        });
+
+        // Fetch and display all products when the page loads
+        fetchProducts();
+    </script>
+</body>
+</html>
